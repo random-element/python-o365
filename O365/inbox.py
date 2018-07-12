@@ -2,6 +2,7 @@ from O365.message import Message
 import logging
 import json
 import requests
+import O365
 
 log = logging.getLogger(__name__)
 
@@ -86,7 +87,7 @@ class Inbox( object ):
 
 				log.debug('appended message: %s',message['Subject'])
 			except Exception as e:
-				log.info('failed to append message: %',str(e))
+				log.info('failed to append message: %s',str(e))
 
 		log.debug('all messages retrieved and put in to the list.')
 		return True
