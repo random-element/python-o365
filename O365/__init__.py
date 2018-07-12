@@ -17,7 +17,8 @@ Python library for interfacing with the Microsoft Office 365 online.
 #__all__ = ['attachment','cal','contact','event','group','inbox','message','schedule']
 
 # This imports all the libraries into the local namespace. This makes it easy to work with.
-
+import O365.log
+log = O365.log.setup_custom_logger(__name__)
 from .contact import Contact
 from .group import Group
 from .cal import Calendar
@@ -28,6 +29,7 @@ from .message import Message
 from .schedule import Schedule
 from .connection import Connection
 from .fluent_inbox import FluentInbox
+from .creds import getCredentials
 
 
 #To the King!
