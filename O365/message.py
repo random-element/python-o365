@@ -95,7 +95,7 @@ class Message(object):
 			return False
 
 		response = requests.get(self.att_url.format(
-				self.jsonStr['Id']), auth=self.auth,verify=self.verify)
+				self.json['Id']), auth=self.auth,verify=self.verify)
 		log.info('response from O365 for retriving message attachments: %s', str(response))
 		json = response.json()
 
@@ -165,36 +165,19 @@ class Message(object):
 	def updateMessage(self, modifiedSection):
 
 		msg = dict()
-		# data = {'Message': {'Body': {}}}
-		# data['Message']['Subject'] = self.json['Subject']
-		# data['Message']['Body']['Content'] = self.json['Body']['Content']
-		# data['Message']['Body']['ContentType'] = self.json['Body']['ContentType']
 		copySection = dict()
 		copySection['Body.Content']='Body.ContentType'
 		for section in modifiedSection:
 			log.debug("Message '{}' modified...".format(section))	
 			setInNestedDict(msg, section, modifiedSection[section])
-
-			# allSections = section.split('.')
-			# ptr = msg
-			# for s in allSections[:-1]:
-			# 	if s not in ptr:
-			# 		ptr[s] = dict()
-			# 		ptr = ptr[s]
-			# ptr[allSections[-1]] = modifiedSection[section]
-
-		# if subject:
-		# 	log.debug("updating subject")
-		# 	data = '{"Subject": subject}'
-
 		jsondata = json.dumps(msg)
 		headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
-		# try:
-		# 	response = requests.patch(self.update_url.format(self.json['Id']), 
-		#  							 jsondata, headers=headers, auth=self.auth,verify=self.verify)
-		# except:
-		#  	log.error(str(response))
-		#  	return False
+		try:
+		 	response = requests.patch(self.update_url.format(self.json['Id']), 
+		 							 jsondata, headers=headers, auth=self.auth,verify=self.verify)
+		except:
+		 	log.error(str(response))
+		 	return False
 		return True
 
 
