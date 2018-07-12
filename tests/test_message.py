@@ -38,7 +38,7 @@ def get(url,**params):
 
 message.requests.get = get
 
-def post(url,data,headers,auth):
+def post(url,data,headers,auth, **kwargs):
 	if url != 'https://outlook.office365.com/api/v1.0/me/sendmail':
 		raise
 		if auth[0] != 'test@unit.com':
@@ -62,7 +62,7 @@ def post(url,data,headers,auth):
 
 message.requests.post = post
 
-def patch(url,data,headers,auth):
+def patch(url,data,headers,auth, **kwargs):
 	if url != 'https://outlook.office365.com/api/v1.0/me/messages/big guid=':
 		raise
 	if auth[0] != 'test@unit.com':
