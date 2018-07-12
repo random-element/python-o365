@@ -64,3 +64,4 @@ sample_run.py
 
 .vscode
 venv
+*secret*
