@@ -65,3 +65,4 @@ sample_run.py
 .vscode
 venv
 *secret*
+*.code-workspace*
