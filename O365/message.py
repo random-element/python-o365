@@ -5,6 +5,23 @@ import logging
 import json
 import requests
 
+def getFromNestedDict(nestedDict, pathToKeys):
+	ptr = nestedDict
+	for p in pathToKeys.split('.'):
+		ptr = ptr[p]
+	
+	return ptr
+
+def setInNestedDict(nestedDict, pathToKeys, value):
+	allSections = pathToKeys.split('.')
+	ptr = nestedDict
+	for s in allSections[:-1]:
+		if s not in ptr:
+			ptr[s] = dict()
+			ptr = ptr[s]
+
+	ptr[allSections[-1]] = value
+
 log = logging.getLogger(__name__)
 
 class Message(object):
@@ -44,19 +61,20 @@ class Message(object):
 	draft_url = 'https://outlook.office365.com/api/v1.0/me/folders/{folder_id}/messages'
 	update_url = 'https://outlook.office365.com/api/v1.0/me/messages/{0}'
 
-	def __init__(self, json=None, auth=None, verify=True):
+	def __init__(self, jsonStr=None, auth=None, verify=True):
 		'''
 		Makes a new message wrapper for sending and receiving messages.
 
 		Keyword Arguments:
-						json (default = None) -- Takes json if you have a pre-existing message to create from.
+						jsonStr (default = None) -- Takes json if you have a pre-existing message to create from.
 						this is mostly used inside the library for when new messages are downloaded.
 						auth (default = None) -- Takes an (email,password) tuple that will be used for
 						authentication with office365.
 		'''
-		if json:
-			self.json = json
-			self.hasAttachments = json['HasAttachments']
+		if jsonStr:
+			#print(json.dumps(jsonStr, indent=4, sort_keys=True))
+			self.json = jsonStr
+			self.hasAttachments = jsonStr['HasAttachments']
 
 		else:
 			self.json = {'Body': {},
@@ -77,7 +95,7 @@ class Message(object):
 			return False
 
 		response = requests.get(self.att_url.format(
-				self.json['Id']), auth=self.auth,verify=self.verify)
+				self.jsonStr['Id']), auth=self.auth,verify=self.verify)
 		log.info('response from O365 for retriving message attachments: %s', str(response))
 		json = response.json()
 
@@ -113,7 +131,7 @@ class Message(object):
 		response = requests.post(
 				self.send_url, data, headers=headers, auth=self.auth,verify=self.verify)
 		log.debug('response from server for sending message:' + str(response))
-		log.debug("respnse body: {}".format(response.text))
+		log.debug("response body: {}".format(response.content))
 		if response.status_code != 202:
 			return False
 
@@ -144,6 +162,41 @@ class Message(object):
 	def getCategories(self):
 		'''gets the message's categories'''
 		return self.json['Categories']
+	def updateMessage(self, modifiedSection):
+
+		msg = dict()
+		# data = {'Message': {'Body': {}}}
+		# data['Message']['Subject'] = self.json['Subject']
+		# data['Message']['Body']['Content'] = self.json['Body']['Content']
+		# data['Message']['Body']['ContentType'] = self.json['Body']['ContentType']
+		copySection = dict()
+		copySection['Body.Content']='Body.ContentType'
+		for section in modifiedSection:
+			log.debug("Message '{}' modified...".format(section))	
+			setInNestedDict(msg, section, modifiedSection[section])
+
+			# allSections = section.split('.')
+			# ptr = msg
+			# for s in allSections[:-1]:
+			# 	if s not in ptr:
+			# 		ptr[s] = dict()
+			# 		ptr = ptr[s]
+			# ptr[allSections[-1]] = modifiedSection[section]
+
+		# if subject:
+		# 	log.debug("updating subject")
+		# 	data = '{"Subject": subject}'
+
+		jsondata = json.dumps(msg)
+		headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
+		# try:
+		# 	response = requests.patch(self.update_url.format(self.json['Id']), 
+		#  							 jsondata, headers=headers, auth=self.auth,verify=self.verify)
+		# except:
+		#  	log.error(str(response))
+		#  	return False
+		return True
+
 
 	def getSender(self):
 		'''get all available information for the sender of the email.'''
