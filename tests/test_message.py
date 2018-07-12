@@ -41,10 +41,10 @@ message.requests.get = get
 def post(url,data,headers,auth, **kwargs):
 	if url != 'https://outlook.office365.com/api/v1.0/me/sendmail':
 		raise
-		if auth[0] != 'test@unit.com':
-				raise
-		if auth[1] != 'pass':
-				raise
+	if auth[0] != 'test@unit.com':
+		raise
+	if auth[1] != 'pass':
+		raise
 	if headers['Content-type'] != 'application/json':
 		raise
 	if headers['Accept'] != 'text/plain':
