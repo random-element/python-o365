@@ -1,10 +1,9 @@
 from O365 import *
 import getpass
 import json
+import argparse
 
-from sys import argv
-
-usage = '''Welcome to the O365 simple message script! Usage is pretty straight forward.
+description = '''Welcome to the O365 simple message script! Usage is pretty straight forward.
 Run the script and you will be asked for username, password, reciving address,
 subject, and then a body. When these have all come and gone your message will
 be sent straight way. 
@@ -14,29 +13,45 @@ will attach the files or crash trying. (hopefully not the latter)
 e.g.: python simple-message.py that_file_you_want_but_could_only_ssh_in.jpg
 '''
 
-if len(argv) > 1:
-	if argv[1] == '/?':
-		print usage
-		exit()
+parser = argparse.ArgumentParser(description=description)
+parser.add_argument("--userid", help="user id that will be used to fetch the secret", type=str)
+parser.add_argument("--toemail", help="receipient of the email", type=str)
+parser.add_argument("--subject", help="email subject", type=str)
+parser.add_argument("--body", help="body of the message", type=str)
+parser.add_argument("--attachments", help="list of attachments", nargs='+', default=list())
+
+args = parser.parse_args()
+userid = args.userid
+(uname, password) = O365.creds.getCredentials(userid)
+rec = args.toemail
+subject=args.subject
+body=args.body
 
 #get login credentials that will be needed to send the message.
-uname = raw_input('Enter your user name: ')
-password = getpass.getpass('Enter your password: ')
+if not uname:
+	uname = raw_input('Enter your user name: ')
+
+if not password:
+	password = getpass.getpass('Enter your password: ')
+
 auth = (uname,password)
 
 #get the address that the message is to be sent to.
-rec = raw_input('Reciving address: ')
+if not rec:
+	rec = raw_input('Reciving address: ')
 
 #get the subject line.
-subject = raw_input('Subject line: ')
+if not subject:
+	subject = raw_input('Subject line: ')
 
 #get the body.
-line = 'please ignore.'
-body = ''
-print 'Now enter the body of the message. leave a blank line when you are done.'
-while line != '':
-	line = raw_input()
-	body += line
+if not body:
+	line = 'please ignore.'
+	body = ''
+	print 'Now enter the body of the message. leave a blank line when you are done.'
+	while line != '':
+		line = raw_input()
+		body += line
 
 #Give the authentication to the message as instantiate it. then set it's values.
 m = Message(auth=auth)
@@ -44,10 +59,9 @@ m.setRecipients(rec)
 m.setSubject(subject)
 m.setBody(body)
 
-if len(argv) > 1:
-	for arg in argv[1:]:
-		a = Attachment(path=arg)
-		m.attachments.append(a)
+for attachment in args.attachments:
+	a = Attachment(path=attachment)
+	m.attachments.append(a)
 
 #send the message and report back.
 print 'Sending message...'
